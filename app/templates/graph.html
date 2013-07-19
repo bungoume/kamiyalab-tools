@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block style_block %}
+<link href="/static/css/datepicker.css" rel="stylesheet" />
+<style type="text/css">
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-inline">
+<input id="dpd1" class="span2" type="text" name="start" placeholder="start" >
+<input id="dpd2" class="span2" type="text" name="end" placeholder="end" >
+<select id="dpd3" class="span2" name="unit">
+  <option value="min">分単位</option>
+  <option value="hour">時間単位</option>
+  <option value="day">一日単位</option>
+</select>
+<button id="draw" class="btn btn-success">描画</button>
+<button id="csv" class="btn"><i class="icon-download-alt"></i>CSV</button>
+</div>
+<div id="chart_div"></div>
+
+{% endblock content %}
+
+{% block tail_script %}
+<script src="/static/js/lib/bootstrap-datepicker.js"></script>
+
+<script>
+'use strict';
+
+var chart;
+
+function _callback(){
+  chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
+  //drawChart();
+}
+
+function drawChart() {
+  var url = "/json/mix";
+  var start = $('#dpd1').val();
+  var end = $('#dpd2').val();
+  var unit = $('#dpd3').val();
+  if(!start || !end){
+    alert("日時を入力してください。");
+    return
+  }
+
+  url += "?start="+start + "&end="+end+"&unit="+unit;
+  $.getJSON(url).then(function(data){
+    data = _.map(data.data, function(a){return [new Date(a[0]),a[1],a[2],a[3]] });
+    console.log(data.length);
+    var dataTable = new google.visualization.DataTable();
+    dataTable.addColumn('datetime','Date');
+    dataTable.addColumn('number', "気象庁 気温");
+    dataTable.addColumn('number', "温度1");
+    dataTable.addColumn('number', "温度2");
+    //dataTable.addRows(researchData);
+    dataTable.addRows(data);
+
+    var options = {
+      title: 'グラフ',
+      legend: {position: 'in'},
+      width:1140,
+      height:500,
+      backgroundColor: 'none',
+    };
+    chart.draw(dataTable, options);
+  });
+}
+
+google.load("visualization", "1", {packages:["corechart"]});
+google.setOnLoadCallback(_callback);
+
+
+var nowTemp = new Date();
+var now = new Date(nowTemp.getFullYear(), nowTemp.getMonth(), nowTemp.getDate(), 0, 0, 0, 0);
+
+$('#draw').on('click', drawChart);
+$('#csv').on('click', function(){
+
+  var url = "/output.csv";
+  var start = $('#dpd1').val();
+  var end = $('#dpd2').val();
+  var unit = $('#dpd3').val();
+  if(!start || !end){
+    alert("日時を入力してください。");
+    return;
+  }
+  url += "?start="+start + "&end="+end+"&unit="+unit;
+  window.location = url;
+
+});
+
+var checkin = $('#dpd1').datepicker({
+  onRender: function(date) {
+    return date.valueOf() > now.valueOf() ? 'disabled' : '';
+  },
+  format: 'yyyy-mm-dd'
+}).on('changeDate', function(ev) {
+  checkout.update();
+  if (ev.date.valueOf() > checkout.date.valueOf()) {
+    var newDate = new Date(ev.date);
+    newDate.setDate(newDate.getDate() + 1);
+    checkout.setValue(newDate);
+  }
+  checkin.hide();
+  $('#dpd2')[0].focus();
+}).data('datepicker');
+
+var checkout = $('#dpd2').datepicker({
+  onRender: function(date) {
+    if(date.valueOf() <= checkin.date.valueOf() || date.valueOf() > now.valueOf() ) return 'disabled';
+    return '';
+  },
+  format: 'yyyy-mm-dd'
+}).on('changeDate', function(ev) {
+  checkout.hide();
+}).data('datepicker');
+
+
+
+</script>
+{% endblock tail_script %}
