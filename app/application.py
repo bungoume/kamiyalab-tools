@@ -52,12 +52,8 @@ def getData(start, end):
 def json_mix():
     start = datetime.datetime.strptime(request.args.get('start'), "%Y-%m-%d")
     end   = datetime.datetime.strptime(request.args.get('end'), "%Y-%m-%d")
-
     data = getData(start,end)
-
     return jsonify(data=data)
-
-
 
 
 @app.route('/output.csv')

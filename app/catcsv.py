@@ -19,7 +19,8 @@ def inputCSV(directory = u"./csv_files/"):
 
     for filename in files:
         incsv = csv.reader(open(directory + filename, 'rb'))
-
+        print filename
+        
         cells = []
         for row in incsv:
             cells.append(row)
@@ -75,11 +76,11 @@ def inputJmaTemp(year, month, day):
 
 def main():
     #create_tables()
-    #inputCSV()
-    d = datetime.datetime(2013,1,1)
-    for a in range(100):
+    inputCSV()
+    d = datetime.datetime.now()
+    for a in range(10):
+        d += datetime.timedelta(days=-1)
         inputJmaTemp(d.year,d.month,d.day)
-        d += datetime.timedelta(days=+1)
     sqlite_db.commit()
 
 
