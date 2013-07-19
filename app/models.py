@@ -13,27 +13,17 @@ class SqliteModel(Model):
         database = sqlite_db
 
 
-class JmaTemp(SqliteModel):
+class ResearchData(SqliteModel):
     datetime = DateTimeField(index=True)
-    temperature = DoubleField(null=True)
+    name = CharField(index=True)
     data_type = CharField(default="raw")
+    data = DoubleField(null=True)
     class Meta:
         indexes = (
-            (('datetime', 'data_type'), True),
+            (('datetime','name'), False),
+            (('datetime','name', 'data_type'), True),
         )
         order_by = ('datetime',)
 
 
-class ResearchTemp(SqliteModel):
-    datetime = DateTimeField(index=True)
-    temperature1 = DoubleField(null=True)
-    temperature2 = DoubleField(null=True)
-    data_type = CharField(default="raw")
-    class Meta:
-        indexes = (
-            (('datetime', 'data_type'), True),
-        )
-        order_by = ('datetime',)
-
-
-#state = ('raw', 'average-1min', 'average-10min', 'average-1hour', 'average-1day')
+#state = ('raw', 'raw-1min', 'raw-10min', 'average-1hour', 'average-1day')

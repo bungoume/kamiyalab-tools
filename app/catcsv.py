@@ -11,8 +11,7 @@ sqlite_db.connect()
 sqlite_db.set_autocommit(False)
 
 def create_tables():
-    JmaTemp.create_table()
-    ResearchTemp.create_table()
+    ResearchData.create_table()
 
 def inputCSV(directory = u"./csv_files/"):
     files = filter(lambda x: x[-4:]==".csv", os.listdir(directory))
@@ -29,9 +28,11 @@ def inputCSV(directory = u"./csv_files/"):
             timedata = datetime.datetime.strptime(row[0], "%Y/%m/%d %H:%M:%S")
 
             if timedata.second == 0:
-                researchTemp = ResearchTemp(datetime=timedata, temperature1=float(row[2]), temperature2=float(row[3]), data_type="average-1min")
+                researchData1 = ResearchData(datetime=timedata, name="temperature-1", data=float(row[2]), data_type="raw-1min")
+                researchData2 = ResearchData(datetime=timedata, name="temperature-2", data=float(row[3]), data_type="raw-1min")
                 try:
-                    researchTemp.save()
+                    researchData1.save()
+                    researchData2.save()
                 except:
                     pass
 
@@ -63,33 +64,19 @@ def inputJmaTemp(year, month, day):
             continue
         temperature = re.sub(r'[\]\)\ ]', '', temperature)
 
-        jmaTemp = JmaTemp(datetime=timedata, temperature=float(temperature), data_type="10min")
+        researchData = ResearchData(datetime=timedata, name="temperature-jma", data=float(temperature), data_type="raw-10min")
         try:
-            jmaTemp.save()
+            researchData.save()
         except:
             pass
 
 
-def calcAverage(year, month, day, hour):
-    timedata = datetime.datetime(year, month, day, hour)
-    data = JmaTemp.select().where(
-        (JmaTemp.datetime >= timedata) &
-        (JmaTemp.datetime < timedata+datetime.timedelta(hours=+1))
-    )
-    average = reduce(lambda a,b: a+b.temperature, data, 0) / data.count()
-    jmaTemp = JmaTemp(datetime=timedata, temperature=float(average), data_type='1hour')
-    try:
-        jmaTemp.save()
-    except:
-        pass
-
-
 def main():
-    #inputCSV()
     #create_tables()
-    d = datetime.datetime(2012,1,1)
-    for a in range(366):
-        inputJmaTemp(d.year,d.month,d.day)
+    #inputCSV()
+    d = datetime.datetime(2013,3,1)
+    for a in range(100):
+        #inputJmaTemp(d.year,d.month,d.day)
         d += datetime.timedelta(days=+1)
     sqlite_db.commit()
 
