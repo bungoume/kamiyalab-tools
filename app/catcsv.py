@@ -60,8 +60,10 @@ def inputJmaTemp(year, month, day):
         #前10分に適用
         timedata = timedata + datetime.timedelta(minutes=-10)
         temperature = line.eq(4).html()
+        #データ不備時はパス
         if temperature == u"×":
             continue
+        #精度不足時につく文字除去
         temperature = re.sub(r'[\]\)\ ]', '', temperature)
 
         researchData = ResearchData(datetime=timedata, name="temperature-jma", data=float(temperature), data_type="raw-10min")
@@ -74,9 +76,9 @@ def inputJmaTemp(year, month, day):
 def main():
     #create_tables()
     #inputCSV()
-    d = datetime.datetime(2013,3,1)
+    d = datetime.datetime(2013,1,1)
     for a in range(100):
-        #inputJmaTemp(d.year,d.month,d.day)
+        inputJmaTemp(d.year,d.month,d.day)
         d += datetime.timedelta(days=+1)
     sqlite_db.commit()
 
