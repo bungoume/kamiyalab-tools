@@ -34,9 +34,13 @@ def getData(start, end):
         t1 = obj.get('temperature-1')
         t2 = obj.get('temperature-2')
         if 'temperature-jma' not in obj:
-            m = obj['datetime'].minute/10 *10
-            d2 = obj['datetime'].strftime("%Y-%m-%d %H:") + str(m).zfill(2) + ":00"
-            t0 = hoge[d2].get('temperature-jma')
+            m  = obj['datetime'].minute%10
+            m1 = obj['datetime'].minute/10 *10
+            d1 = obj['datetime'].strftime("%Y-%m-%d %H:") + str(m1).zfill(2) + ":00"
+            dt2 = obj['datetime']+datetime.timedelta(minutes=+10)
+            m2 = dt2.minute/10 *10
+            d2 = dt2.strftime("%Y-%m-%d %H:") + str(m2).zfill(2) + ":00"
+            t0 = round( (hoge[d1].get('temperature-jma') * (10-m) + hoge[d2].get('temperature-jma') * m)/10 ,1)
         data.append([key, t0, t1, t2])
 
     data.sort(key=lambda x:x[0])
