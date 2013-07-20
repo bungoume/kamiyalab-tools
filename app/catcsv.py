@@ -3,15 +3,12 @@ import os
 import csv
 import datetime
 from pyquery import PyQuery as pq
-from peewee import SqliteDatabase
 from models import *
 import re
 
 sqlite_db.connect()
 sqlite_db.set_autocommit(False)
 
-def create_tables():
-    ResearchData.create_table()
 
 def inputCSV(directory = u"./csv_files/"):
     files = filter(lambda x: x[-4:]==".csv", os.listdir(directory))
@@ -26,6 +23,8 @@ def inputCSV(directory = u"./csv_files/"):
             cells.append(row)
 
         for row in cells[202:262]:
+            if raw[0] == '#BeginMark':
+                break
             timedata = datetime.datetime.strptime(row[0], "%Y/%m/%d %H:%M:%S")
 
             if timedata.second == 0:
@@ -75,7 +74,6 @@ def inputJmaTemp(year, month, day):
 
 
 def main():
-    #create_tables()
     inputCSV()
     d = datetime.datetime.now()
     for a in range(10):
