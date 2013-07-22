@@ -32,6 +32,7 @@ def inputCSV(directory = u"./csv_files/"):
     print "size:" + str(len(jdata))
     req = urllib2.Request(SERVER_URL + "/set/data", jdata, {'Content-Type':'application/json'})
     res = urllib2.urlopen(req)
+    print res.read()
     f = open('cache.txt', 'w')
     f.write(jdata)
     f.close()
