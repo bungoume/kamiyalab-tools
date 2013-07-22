@@ -5,6 +5,8 @@ import datetime
 import urllib2
 import json
 
+SERVER_URL = "http://localhost:5000"
+
 def inputCSV(directory = u"./csv_files/"):
     files = filter(lambda x: x[-4:]==".csv", os.listdir(directory))
     files.sort()
@@ -28,7 +30,7 @@ def inputCSV(directory = u"./csv_files/"):
 
     jdata = json.dumps({'json':data})
     print "size:" + str(len(jdata))
-    req = urllib2.Request("http://localhost:5000/set/data", jdata, {'Content-Type':'application/json'})
+    req = urllib2.Request(SERVER_URL + "/set/data", jdata, {'Content-Type':'application/json'})
     res = urllib2.urlopen(req)
     f = open('cache.txt', 'w')
     f.write(jdata)
