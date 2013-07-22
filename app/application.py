@@ -3,11 +3,47 @@
 from flask import Flask, request, render_template, flash, jsonify, Response, g
 
 from pyquery import PyQuery as pq
-import datetime
+import datetime, re
 
 from models import *
 
 app = Flask(__name__)
+
+
+def inputJmaTemp(year, month, day):
+    y = str(year)
+    m = str(month).zfill(2)
+    d = str(day).zfill(2)
+    url = "http://www.data.jma.go.jp/obd/stats/etrn/view/10min_s1.php?prec_no=48&block_no=47610"
+    url += "&year=" + y + "&month=" + m + "&day=" + d
+
+    print url
+
+    for a in pq(url=url)("table.data2_s tr"):
+        line = pq(a)("td")
+        time_text = line.eq(0).html()
+        if not time_text:
+            continue
+
+        if time_text =="24:00":
+            timedata = datetime.datetime.strptime(y+"/"+m+"/"+d+" 00:00", "%Y/%m/%d %H:%M") + datetime.timedelta(days=+1)
+        else:
+            timedata = datetime.datetime.strptime(y+"/"+m+"/"+d+" "+time_text, "%Y/%m/%d %H:%M")
+
+        #前10分に適用
+        timedata = timedata + datetime.timedelta(minutes=-10)
+        temperature = line.eq(4).html()
+        #データ不備時はパス
+        if temperature == u"×":
+            continue
+        #精度不足時につく文字除去
+        temperature = re.sub(r'[\]\)\ ]', '', temperature)
+
+        researchData = ResearchData(datetime=timedata, name="temperature-jma", data=float(temperature), data_type="raw-10min")
+        try:
+            researchData.save()
+        except:
+            pass
 
 
 def getData(start, end):
@@ -72,6 +108,34 @@ def generate_csv():
     csv_data = csv_file.getvalue()
 
     return Response(csv_data, mimetype='text/csv')
+
+
+@app.route('/set/jma')
+def setJma():
+    g.db.set_autocommit(False)
+    d = datetime.datetime.now()
+    for a in range(10):
+        d += datetime.timedelta(days=-1)
+        inputJmaTemp(d.year,d.month,d.day)
+    g.db.commit()
+    return "ok"
+
+
+@app.route('/set/data', methods=['POST'])
+def setData():
+    g.db.set_autocommit(False)
+    data = request.json['json']
+
+    for obj in data:
+        researchData1 = ResearchData(datetime=obj[0], name="temperature-1", data=float(obj[1]), data_type="raw-1min")
+        researchData2 = ResearchData(datetime=obj[0], name="temperature-2", data=float(obj[2]), data_type="raw-1min")
+        try:
+            researchData1.save()
+            researchData2.save()
+        except:
+            pass
+    g.db.commit()
+    return "ok"
 
 
 @app.route("/")
