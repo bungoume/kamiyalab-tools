@@ -39,6 +39,7 @@ def inputCSV(directory = u"./csv_files/"):
 
 def main():
     inputCSV()
+    raw_input('END --> ')
 
 
 if __name__ == '__main__':
