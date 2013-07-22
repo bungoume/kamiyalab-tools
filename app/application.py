@@ -127,8 +127,10 @@ def setData():
     data = request.json['json']
 
     for obj in data:
-        researchData1 = ResearchData(datetime=obj[0], name="temperature-1", data=float(obj[1]), data_type="raw-1min")
-        researchData2 = ResearchData(datetime=obj[0], name="temperature-2", data=float(obj[2]), data_type="raw-1min")
+
+        timedata = datetime.datetime.strptime(obj[0], "%Y/%m/%d %H:%M:%S")
+        researchData1 = ResearchData(datetime=timedata, name="temperature-1", data=float(obj[1]), data_type="raw-1min")
+        researchData2 = ResearchData(datetime=timedata, name="temperature-2", data=float(obj[2]), data_type="raw-1min")
         try:
             researchData1.save()
             researchData2.save()
