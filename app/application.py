@@ -46,7 +46,7 @@ def inputJmaTemp(year, month, day):
             pass
 
 
-def getData(start, end):
+def getData(start, end, mode="minutes"):
     researchData = ResearchData.select().where(
         (ResearchData.datetime >= start) & 
         (ResearchData.datetime <= end)
@@ -55,6 +55,8 @@ def getData(start, end):
     hoge = {}
     for temp in researchData:
         d = temp.datetime.strftime("%Y-%m-%d %H:%M:%S")
+        if mode == 'hours' and temp.datetime.minute != 0:
+            continue
         if d not in hoge:
             hoge[d] = {}
         hoge[d][temp.name] = temp.data
@@ -88,7 +90,10 @@ def getData(start, end):
 def json_mix():
     start = datetime.datetime.strptime(request.args.get('start'), "%Y-%m-%d")
     end   = datetime.datetime.strptime(request.args.get('end'), "%Y-%m-%d")
-    data = getData(start,end)
+    mode = 'minutes'
+    if (end - start).days > 8:
+        mode = 'hours'
+    data = getData(start,end, mode)
     return jsonify(data=data)
 
 
