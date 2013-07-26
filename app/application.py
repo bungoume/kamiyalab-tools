@@ -118,10 +118,15 @@ def generate_csv():
 @app.route('/set/jma')
 def setJma():
     g.db.set_autocommit(False)
-    d = datetime.datetime.now()
-    for a in range(10):
-        d += datetime.timedelta(days=-1)
+    now = datetime.datetime.now()
+    try:
+        d = ResearchData.select().order_by(ResearchData.datetime.desc()).limit(1).get().datetime
+    except ResearchData.DoesNotExist:
+        #初期化
+        d = datetime.datetime.now() + datetime.timedelta(days=-365)
+    while d < now:
         inputJmaTemp(d.year,d.month,d.day)
+        d += datetime.timedelta(days=+1)
     g.db.commit()
     return "ok"
 
@@ -132,7 +137,6 @@ def setData():
     data = request.json['json']
 
     for obj in data:
-
         timedata = datetime.datetime.strptime(obj[0], "%Y/%m/%d %H:%M:%S")
         researchData1 = ResearchData(datetime=timedata, name="temperature-1", data=float(obj[1]), data_type="raw-1min")
         researchData2 = ResearchData(datetime=timedata, name="temperature-2", data=float(obj[2]), data_type="raw-1min")
