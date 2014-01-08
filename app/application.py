@@ -48,7 +48,7 @@ def inputJmaTemp(year, month, day):
 
 def getData(start, end, mode="minutes"):
     researchData = ResearchData.select().where(
-        (ResearchData.datetime >= start) & 
+        (ResearchData.datetime >= start) &
         (ResearchData.datetime <= end)
     )
 
@@ -113,6 +113,56 @@ def generate_csv():
     csv_data = csv_file.getvalue()
 
     return Response(csv_data, mimetype='text/csv')
+
+
+@app.route('/output2.csv')
+def generate_csv2():
+    start = datetime.datetime.strptime(request.args.get('start'), "%Y-%m-%d")
+    end   = datetime.datetime.strptime(request.args.get('end'), "%Y-%m-%d")
+
+    def daterange(start_date, end_date):
+        for n in range(int ((end_date - start_date).days)):
+            yield start_date + datetime.timedelta(days=+n)
+
+    times = [
+        ["08:35", "09:05"],
+        ["10:00", "10:30"],
+        ["12:20", "13:00"],
+        ["13:40", "14:20"],
+        ["16:00", "16:30"],
+        ["17:20", "17:50"]
+    ]
+
+    data = []
+
+    for single_date in daterange(start, end):
+        day = single_date.strftime("%Y-%m-%d ")
+        day_data = [day,]
+
+        for time in times:
+            start_time = datetime.datetime.strptime(day+time[0], "%Y-%m-%d %H:%M")
+            end_time   = datetime.datetime.strptime(day+time[1], "%Y-%m-%d %H:%M")
+            researchData = ResearchData.select().where(
+                (ResearchData.name == 'temperature-1') &
+                (ResearchData.datetime >= start_time) &
+                (ResearchData.datetime <= end_time)
+            )
+            if researchData.count() == 0:
+                average = 0
+            else:
+                sum_data = reduce(lambda x, y: x + y.data, researchData,0)
+                average = sum_data/researchData.count()
+            day_data.append(average)
+        data.append(day_data)
+
+    import csv,cStringIO
+    csv_file = cStringIO.StringIO()
+    writer = csv.writer(csv_file, quoting=csv.QUOTE_NONNUMERIC)
+    writer.writerows(data)
+    csv_data = csv_file.getvalue()
+
+    return Response(csv_data, mimetype='text/csv')
+
 
 
 @app.route('/set/jma')

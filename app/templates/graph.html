@@ -17,6 +17,7 @@
 </select>
 <button id="draw" class="btn btn-success">描画</button>
 <button id="csv" class="btn"><i class="icon-download-alt"></i>CSV</button>
+<button id="csv2" class="btn"><i class="icon-download-alt"></i>Ave_csv</button>
 <a href="/set/jma" class="btn">気象庁データ更新</a>
 </div>
 <div id="chart_div"></div>
@@ -89,6 +90,21 @@ $('#csv').on('click', function(){
   }
   url += "?start="+start + "&end="+end+"&unit="+unit;
   window.location = url;
+
+});
+
+$('#csv2').on('click', function(){
+
+  var url = "/output2.csv";
+  var start = $('#dpd1').val();
+  var end = $('#dpd2').val();
+  var unit = $('#dpd3').val();
+  if(!start || !end){
+    alert("日時を入力してください。");
+    return;
+  }
+  url += "?start="+start + "&end="+end+"&unit="+unit;
+  window.location.href = url;
 
 });
 
